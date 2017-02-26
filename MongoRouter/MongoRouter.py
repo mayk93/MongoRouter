@@ -84,37 +84,6 @@ class MongoRouter(object):
 
         self.settings = settings
 
-
-
-        # self.mongo_host = settings.get(
-        #     "host",
-        #     {"host": "localhost", "port": 27017}
-        # )
-        # self.mongo_client_settings = settings.get(
-        #     "client_settings",
-        #     {}
-        # )
-        # self.routes = settings.get("routes", {})
-        #
-        # self.create_collections = create_collections
-        # self.default_custom_routes = default_custom_routes
-        #
-        # if not settings.get("host"):
-        #     logging.info("[MongoRouter] No host provided - Connecting to local mongo instance.")
-        # if not settings.get("host"):
-        #     logging.info("[MongoRouter] No routes provided.")
-        #     if self.create_collections:
-        #         logging.info("[MongoRouter] Will create collections on demand.")
-        #     else:
-        #         logging.warning("[MongoRouter] No routes provided and collection creation disabled.")
-        #
-        # client_settings = dict(
-        #     self.mongo_host.items() + self.mongo_client_settings.items()
-        # )
-        # self.client = MongoClient(
-        #     client_settings
-        # )
-
     def _route(self, desired_collection):
         try:
             '''
