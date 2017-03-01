@@ -1,7 +1,7 @@
 import logging
 from pymongo import MongoClient
 
-from MongoRouterExceptions import SettingsError
+from MongoRouterExceptions import EnvironmentVariableError, SettingsError
 from MongoRouterUtils import read_settings_env, read_settings, EXPECTED_KEYS
 
 
@@ -38,7 +38,19 @@ class MongoRouter(object):
 
         if settings is None:
             # Look for a environment variable called MONGOROUTER. If it exists, use it to try to load the settings file.
-            settings = read_settings_env("MONGOROUTER")
+            try:
+                settings = read_settings_env("MONGOROUTER")
+            except EnvironmentVariableError as e:
+                if create_collections:
+                    logging.warning(
+                        "\n[MongoRouter] Settings given as None and no MONGOROUTER environment variable found." +
+                        "\nOptions create_collections is true. Will use local client and create collections in " +
+                        "mongo_router_db."
+                        "\nThis may not be what you want!\n"
+                    )
+                    settings = {}
+                else:
+                    raise e
         elif isinstance(settings, str) or isinstance(settings, unicode):
                 try:
                     # First try to use this a environment variable
@@ -63,7 +75,7 @@ class MongoRouter(object):
                 )
 
         self.settings = settings
-        self.routes = settings["routes"]
+        self.routes = settings.get("routes", {})
         self.create_collections = create_collections
         self.use_custom_routes = use_custom_routes
 
@@ -150,3 +162,17 @@ class TestMongoRouter(unittest.TestCase):
             "success",
             router.route("test").find_one({"test_id": "tid_2"}).get("test", None)
         )
+
+    def test_default_routing(self):
+        router = MongoRouter()
+
+        router.route("test").insert_one({"test_id": "tid_2", "test": "success"})
+
+        self.assertEquals(
+            "success",
+            router.route("test").find_one({"test_id": "tid_2"}).get("test", None)
+        )
+
+        router.route("test").remove({"test_id": "tid_2"})
+
+        self.assertIsNone(router.route("test").find_one({"test_id": "tid_2"}))
