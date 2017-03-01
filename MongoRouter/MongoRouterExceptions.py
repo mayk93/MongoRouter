@@ -18,6 +18,19 @@ class EnvironmentVariableError(Exception):
         )
 
 
+class SettingsError(Exception):
+    def __init__(self,
+                 message):
+        self.message = message
+
+    def ___str__(self):
+        return "%s %s %s" % (
+            START_ERROR,
+            self.message,
+            END_ERROR
+        )
+
+
 import unittest
 
 
@@ -29,3 +42,12 @@ class TestExceptions(unittest.TestCase):
                 where="[MongoRouter __init__ None check]"
             )
         self.assertRaises(EnvironmentVariableError, test_method)
+
+    def SettingsError(self):
+        def test_method():
+            test_object = []
+            raise SettingsError("[MongoRouter] Could not establish settings. " +
+                                "Your settings object must be either a string class, " +
+                                "representing an environment variable or a path to a json file, or a dictionary " +
+                                "containing the routes. Settings object class: %s" % test_object.__class__.__name__)
+        self.assertRaises(SettingsError, test_method)

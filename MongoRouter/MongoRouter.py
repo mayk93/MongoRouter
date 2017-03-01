@@ -1,34 +1,8 @@
-import os
-import json
 import logging
 from pymongo import MongoClient
 
-from MongoRouterExceptions import EnvironmentVariableError
-
-
-def read_settings(settings_file):
-    with open(settings_file) as src:
-        try:
-            settings = json.loads(src.read())
-        except ValueError as e:
-            logging.info("[MongoRouter] Most likely settings not stored as JSON. Save settings as JSON file.")
-            raise e
-    return settings
-
-
-def read_settings_env(environment_variable):
-    try:
-        settings_file = os.environ[environment_variable]
-    except KeyError:
-        raise EnvironmentVariableError(
-            looking_for=environment_variable,
-            where="[read_settings_env]"
-        )
-    settings = read_settings(settings_file)
-    return settings
-
-
-EXPECTED_KEYS = ["routes"]
+from MongoRouterExceptions import SettingsError
+from MongoRouterUtils import read_settings_env, read_settings, EXPECTED_KEYS
 
 
 class MongoRouter(object):
@@ -76,13 +50,24 @@ class MongoRouter(object):
             settings = settings
             # Use this dictionary as a settings file.
         else:
-            raise Exception("[MongoRouter] Could not establish settings.")
+            raise SettingsError("[MongoRouter] Could not establish settings. " +
+                                "Your settings object must be either a string class, " +
+                                "representing an environment variable or a path to a json file, or a dictionary " +
+                                "containing the routes. Settings object class: %s" % settings.__class__.__name__)
 
         for expected_key in EXPECTED_KEYS:
             if expected_key not in settings.keys():
-                logging.warning("[MongoRouter] Expected key %s not found in settings dict.")
+                logging.warning(
+                    "\n[MongoRouter] Expected key %s not found in settings dict." +
+                    "\nThis may cause the router to crash or malfunction!\n"
+                )
 
         self.settings = settings
+        self.routes = settings["routes"]
+        self.create_collections = create_collections
+        self.use_custom_routes = use_custom_routes
+
+        self.local_client = MongoClient()
 
     def _route(self, desired_collection):
         try:
@@ -91,13 +76,20 @@ class MongoRouter(object):
             Get the DB for this collection,
             Get the actual collection
             '''
-            return self.routes[desired_collection]["client"][
-                self.routes[desired_collection]["db"]][
-                self.routes[desired_collection]["col"]]
+
+            client = MongoClient(
+                host=self.routes[desired_collection]["client"]["host"],
+                port=self.routes[desired_collection]["client"]["port"]
+            )
+            return client[self.routes[desired_collection]["db"]][self.routes[desired_collection]["col"]]
         except KeyError:
             if self.create_collections:
-                logging.info("Creating collection %s in mongo_router_db." % desired_collection)
-                return self.client["mongo_router_db"][desired_collection]
+                logging.warning(
+                    "\n[MongoRouter] " +
+                    "Using local client, creating or returning collection %s in mongo_router_db." % desired_collection +
+                    "\nThis may not be what you want!\n"
+                )
+                return self.local_client["mongo_router_db"][desired_collection]
 
         raise ValueError("Route to %s not found." % desired_collection)
 
@@ -123,6 +115,10 @@ class TestMongoRouter(unittest.TestCase):
 
         self.test_routes = {
             "test": {
+                "client": {
+                    "host": "localhost",
+                    "port": 27017
+                },
                 "db": "test_db",
                 "col": "test_db"
             }
