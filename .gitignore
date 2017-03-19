@@ -6,6 +6,12 @@ __pycache__/
 # C extensions
 *.so
 
+.idea
+*.idea*
+
+MongoRouter_env/
+*MongoRouter_env*
+
 # Distribution / packaging
 .Python
 env/

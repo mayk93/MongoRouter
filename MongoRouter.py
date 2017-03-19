@@ -1,8 +1,10 @@
 import logging
-from pymongo import MongoClient
+
+# from pymongo import MongoClient
+from motor.motor_tornado import MotorClient as MongoClient
 
 from MongoRouterExceptions import EnvironmentVariableError, SettingsError
-from MongoRouterUtils import read_settings_env, read_settings, EXPECTED_KEYS
+from MongoRouterUtils import read_settings_env, read_settings, load_algoritm, EXPECTED_KEYS
 
 
 class MongoRouter(object):
@@ -75,6 +77,7 @@ class MongoRouter(object):
                 )
 
         self.settings = settings
+        self.mode = settings.get("mode")
         self.routes = settings.get("routes", {})
         self.create_collections = create_collections
         self.use_custom_routes = use_custom_routes
@@ -89,11 +92,29 @@ class MongoRouter(object):
             Get the actual collection
             '''
 
-            client = MongoClient(
-                host=self.routes[desired_collection]["client"]["host"],
-                port=self.routes[desired_collection]["client"]["port"]
-            )
-            return client[self.routes[desired_collection]["db"]][self.routes[desired_collection]["col"]]
+            # ToDo: Clean this up
+            if not self.mode or desired_collection in self.routes.keys():
+                client = MongoClient(
+                    host=self.routes[desired_collection]["client"]["host"],
+                    port=self.routes[desired_collection]["client"]["port"]
+                )
+                return client[self.routes[desired_collection]["db"]][self.routes[desired_collection]["col"]]
+            else:
+                algorithm = load_algoritm(self.mode)
+                db_name, col_name = algorithm(desired_collection)
+
+                client = MongoClient(
+                    host=self.routes["_"]["clients"].get(
+                        db_name,
+                        self.routes["_"]["clients"]["_"]
+                    )["host"],
+                    port=self.routes["_"]["clients"].get(
+                        db_name,
+                        self.routes["_"]["clients"]["_"]
+                    )["port"]
+                )
+
+                return client[db_name][col_name]
         except KeyError:
             if self.create_collections:
                 logging.warning(
@@ -123,7 +144,7 @@ class TestMongoRouter(unittest.TestCase):
         # Create this DB and collection at every test
         self.test_collection = MongoClient(
             host="127.0.0.1", port=27017
-        )["test_db"]["test_db"]
+        )["test_db"]["test_col"]
 
         self.test_routes = {
             "test": {
@@ -132,7 +153,7 @@ class TestMongoRouter(unittest.TestCase):
                     "port": 27017
                 },
                 "db": "test_db",
-                "col": "test_db"
+                "col": "test_col"
             }
         }
 
@@ -160,7 +181,7 @@ class TestMongoRouter(unittest.TestCase):
 
         self.assertEquals(
             "success",
-            router.route("test").find_one({"test_id": "tid_2"}).get("test", None)
+            (yield router.route("test").find_one({"test_id": "tid_2"})).get("test", None)
         )
 
     def test_default_routing(self):
@@ -170,9 +191,23 @@ class TestMongoRouter(unittest.TestCase):
 
         self.assertEquals(
             "success",
-            router.route("test").find_one({"test_id": "tid_2"}).get("test", None)
+            (yield router.route("test").find_one({"test_id": "tid_2"})).get("test", None)
         )
 
         router.route("test").remove({"test_id": "tid_2"})
 
         self.assertIsNone(router.route("test").find_one({"test_id": "tid_2"}))
+
+    def test_router_routing(self):
+        router = MongoRouter()
+
+        router.route("my_test").insert_one({"test_id": "tid_2", "test": "success"})
+
+        self.assertEquals(
+            "success",
+            (yield router.route("my_test").find_one({"test_id": "tid_2"})).get("test", None)
+        )
+
+        router.route("my_test").remove({"test_id": "tid_2"})
+
+        self.assertIsNone(router.route("my_test").find_one({"test_id": "tid_2"}))

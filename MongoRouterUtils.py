@@ -27,3 +27,9 @@ def read_settings_env(environment_variable):
         )
     settings = read_settings(settings_file)
     return settings
+
+
+def load_algoritm(mode):
+    if mode == "USCORE":
+        from RoutingAlgorithms.underscore import underscore
+        return underscore
