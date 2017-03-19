@@ -7,6 +7,7 @@ __pycache__/
 *.so
 
 .idea
+.idea/
 *.idea*
 
 MongoRouter_env/
