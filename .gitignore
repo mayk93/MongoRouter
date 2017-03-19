@@ -9,6 +9,7 @@ __pycache__/
 .idea
 .idea/
 *.idea*
+.DS_Store
 
 MongoRouter_env/
 *MongoRouter_env*
