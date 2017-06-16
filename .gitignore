@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Env
+
+*_env/
+
 # C extensions
 *.so
 
@@ -10,9 +14,6 @@ __pycache__/
 .idea/
 *.idea*
 .DS_Store
-
-MongoRouter_env/
-*MongoRouter_env*
 
 # Distribution / packaging
 .Python
