@@ -12,7 +12,7 @@ DEFAULT_CONFIG_FILE = "default_config.json"
 class MongoRouter(object):
     def __init__(self,
                  config=None,
-                 config_file=None,
+                 config_file=None,  # ToDo: Make this look for a mongo_router_config.json file in a given path
                  default_to_local=False):
 
         self.default_to_local = default_to_local
