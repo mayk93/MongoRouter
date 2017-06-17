@@ -4,5 +4,4 @@ python:
 services: mongodb
 install:
   - "pip install -r requirements.txt"
-  - "pip install tox-travis"
-script: tox
+script: python -m unittest MongoRouterTests.MongoRouterTests
