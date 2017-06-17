@@ -1,14 +1,12 @@
 args==0.1.0
 clint==0.5.1
 futures==3.0.5
-MongoRouter==0.0.1
 pkginfo==1.4.1
 pluggy==0.4.0
 py==1.4.34
 pymongo==3.4.0
 requests==2.13.0
 requests-toolbelt==0.7.1
-tox==2.7.0
 twine==1.8.1
 virtualenv==15.1.0
 wheel==0.24.0
