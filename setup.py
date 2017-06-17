@@ -11,7 +11,7 @@ with open(path.join(current_path, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='MongoRouter',
-    version='0.0.4',
+    version='0.0.10',
     description='A routing package for Mongo DB',
     long_description=long_description,
 
@@ -25,13 +25,10 @@ setup(
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Build Tools',
-        'License :: OSI Approved :: MIT License',
-
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7'
+        'License :: OSI Approved :: MIT License'
     ],
 
     keywords='mongo pymongo database nosql',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['pymongo']
+    install_requires=['pymongo', 'netaddr']
 )

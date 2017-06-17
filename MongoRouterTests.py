@@ -1,7 +1,7 @@
 import unittest
 import pymongo
 
-from MongoRouter import MongoRouter
+from MongoRouter.MongoRouter import MongoRouter
 
 
 class MongoRouterTests(unittest.TestCase):

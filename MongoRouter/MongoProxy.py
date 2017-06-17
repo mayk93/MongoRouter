@@ -1,4 +1,9 @@
-from Executable import Executable, EXECUTABLE_MONGO_METHODS
+import sys
+
+if sys.version_info[0] == 3:
+    from .Executable import Executable, EXECUTABLE_MONGO_METHODS
+else:
+    from Executable import Executable, EXECUTABLE_MONGO_METHODS
 
 
 class MongoProxy(object):

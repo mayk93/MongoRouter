@@ -1,6 +1,11 @@
+import sys
 import pymongo
-import MongoRouterUtils
-from MongoProxy import MongoProxy
+if sys.version_info[0] == 3:
+    from . import MongoRouterUtils
+    from . MongoProxy import MongoProxy
+else:
+    import MongoRouterUtils
+    from MongoProxy import MongoProxy
 
 
 import json
