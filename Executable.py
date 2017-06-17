@@ -1,6 +1,8 @@
 import time
+import logging
 import pymongo
 from pymongo.errors import AutoReconnect
+
 
 EXECUTABLE_MONGO_METHODS = set([typ for typ in dir(pymongo.collection.Collection) if not typ.startswith('_')])
 EXECUTABLE_MONGO_METHODS.update(set([typ for typ in dir(pymongo.MongoClient) if not typ.startswith('_')]))
@@ -14,7 +16,7 @@ def safe_mongocall(call):
                 return call(*args, **kwargs)
             except AutoReconnect:
                 time.sleep(pow(2, i))
-        print 'Error: Failed operation!'
+        logging.warning('Error: Failed operation!')
 
     return _safe_mongocall
 

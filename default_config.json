@@ -1,0 +1,21 @@
+{
+    "prod_hosts": [],
+    "stage_hosts": [],
+    "dev_hosts": [],
+
+    "prod_mongo": {
+        "host": "localhost",
+        "port": 27017,
+        "routes": {}
+    },
+    "stage_mongo": {
+        "host": "localhost",
+        "port": 27017,
+        "routes": {}
+    },
+    "dev_mongo": {
+        "host": "localhost",
+        "port": 27017,
+        "routes": {}
+    }
+}
