@@ -1,0 +1,1 @@
+![Build Statsus](https://travis-ci.org/mayk93/MongoRouter.svg?branch=master)
