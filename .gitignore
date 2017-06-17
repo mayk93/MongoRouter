@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Default config - Only used for tests
+default_config.json
+docs_draft.txt
+
 # Env
 
 *_env/

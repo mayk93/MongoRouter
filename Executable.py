@@ -11,7 +11,7 @@ EXECUTABLE_MONGO_METHODS.update(set([typ for typ in dir(pymongo) if not typ.star
 
 def safe_mongocall(call):
     def _safe_mongocall(*args, **kwargs):
-        for i in xrange(5):
+        for i in range(5):
             try:
                 return call(*args, **kwargs)
             except AutoReconnect:

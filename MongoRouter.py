@@ -1,8 +1,8 @@
+import pymongo
 import MongoRouterUtils
 from MongoProxy import MongoProxy
 
-import pymongo
-import socket
+
 import json
 import logging
 
@@ -13,45 +13,57 @@ class MongoRouter(object):
     def __init__(self,
                  config=None,
                  config_file=None,
-                 default_routes=True):
+                 default_to_local=False):
 
-        self.default_routes = default_routes
-
-        if config:
-            pass
-        elif config_file:
+        self.default_to_local = default_to_local
+        # ToDo: Perhaps this can cache more than just connections
+        self.connections = {}  # Here we cache connections, so we don't reconnect every time we route, only at first
+        if config_file:
             with open(config_file) as config_src:
                 config = json.loads(config_src.read())
         else:
-            logging.warning("No config or config file specified, defaulting to default config.")
-            with open(DEFAULT_CONFIG_FILE) as config_src:
-                config = json.loads(config_src.read())
+            logging.warning("No config or config file specified. Will use mongo_router_db with route name.")
 
-        self.mongo_config = MongoRouterUtils.get_mongo_host(config, socket.gethostname())
-        self.connection = MongoProxy(pymongo.MongoClient(
-            host=self.mongo_config.get("host", "localhost"),
-            port=self.mongo_config.get("port", 27017)
-        ))
+        self.config = config
 
     def __del__(self):
-        self.connection.close()
+        for connection in self.connections.values():
+            try:
+                connection.close()
+            except Exception as e:
+                logging.exception(e)
 
-    def route(self, collection_name):
-        # This actually need to be done with a regex or something like that, because it gets repetitive otherwise
-        routes = self.mongo_config.get("routes")
-        if not routes:
-            logging.warning("No routes for mongo config: %s" % self.mongo_config)
-        route = routes.get(collection_name)
-        if not route:
-            if not self.default_routes:
-                logging.warning("No route for collection: %s" % collection_name)
-                return
-            route = {"db": "mongo_router_db", "collection": collection_name}
-        db = route.get("db")
-        if not db:
-            logging.warning("No db for collection: %s" % collection_name)
-        collection = route.get("collection", collection_name)
-        if not collection:
-            # This will probably never happen
-            logging.warning("No collection for collection: %s" % collection_name)
-        return self.connection[db][collection]
+    def route(self, route_name, default=False):
+        if self.config is None or default:
+            try:
+                return self.connections[route_name]["mongo_router_db"][route_name]
+            except KeyError:
+                self.connections[route_name] = MongoProxy(pymongo.MongoClient(
+                    host="localhost",
+                    port=27017
+                ))
+                return self.connections[route_name]["mongo_router_db"][route_name]
+
+        route_info = MongoRouterUtils.get_route_info(route_name, self.config)
+
+        if not route_info:
+            if self.default_to_local:
+                return self.route(route_name, default=True)
+            raise Exception("Unknown route %s" % route_name)
+
+        try:
+            return self.connections[
+                route_name][
+                route_info.get("db", "mongo_router_db")][
+                route_info.get("collection", route_name)]
+        except KeyError:
+            # ToDo: Add other Client options
+            self.connections = MongoProxy(pymongo.MongoClient(
+                host=route_info["host"],
+                port=route_info["port"]
+            ))
+            return self.connections[
+                route_name][
+                route_info.get("db", "mongo_router_db")][
+                route_info.get("collection", route_name)]
+
