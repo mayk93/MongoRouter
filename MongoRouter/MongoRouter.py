@@ -63,7 +63,7 @@ class MongoRouter(object):
                 route_info.get("collection", route_name)]
         except KeyError:
             # ToDo: Add other Client options
-            self.connections = MongoProxy(pymongo.MongoClient(
+            self.connections[route_name] = MongoProxy(pymongo.MongoClient(
                 host=route_info["host"],
                 port=route_info["port"]
             ))

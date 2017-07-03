@@ -41,3 +41,4 @@ class MongoRouterTests(unittest.TestCase):
         self.assertEquals(pymongo.MongoClient()["mongo_router_db"][self.test_collection_name].find({}).count(), 0)
 
 
+
