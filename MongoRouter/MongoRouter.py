@@ -11,21 +11,25 @@ else:
 import json
 import logging
 
-DEFAULT_CONFIG_FILE = "default_config.json"
-
 
 class MongoRouter(object):
     def __init__(self,
                  config=None,
-                 config_file=None,  # ToDo: Make this look for a mongo_router_config.json file in a given path
+                 config_file=None,
                  default_to_local=False):
 
+        # This tells the router if, in case there is no route in the config file, weather or not to connect to localhost
         self.default_to_local = default_to_local
-        # ToDo: Perhaps this can cache more than just connections
-        self.connections = {}  # Here we cache connections, so we don't reconnect every time we route, only at first
+        # Here we cache connections, so we don't reconnect every time we route, only at first
+        self.connections = {}
+        # If not config file was given, we look for one in a few standard locations
+        if not config_file:
+            config_file = MongoRouterUtils.get_config_file()
         if config_file:
             with open(config_file) as config_src:
                 config = json.loads(config_src.read())
+        # In case no config was found and we allow defaulting, we will connect to localhost, to mongo_router_db as the
+        # db and route_name as the collection name.
         else:
             logging.warning("No config or config file specified. Will use mongo_router_db with route name.")
 
@@ -38,7 +42,18 @@ class MongoRouter(object):
             except Exception as e:
                 logging.exception(e)
 
-    def route(self, route_name, default=False):
+    def route(self, route_name, default=False, **kwargs):
+        '''
+
+        :param route_name: The name of a route to a collection.
+        :param default: If the route does not match, return a connection to
+                        localhost, mongo_router_db, route_name if true, else raise exception.
+        :param kwargs: Used to specify a particular route ( overwrite the local machine rule )
+        :return: A mongo collection, based on the route
+        '''
+
+        # ToDo: Implement kwarg based flags to overwrite local machine constrains.
+
         if self.config is None or default:
             try:
                 return self.connections[route_name]["mongo_router_db"][route_name]
