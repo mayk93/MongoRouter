@@ -1,7 +1,6 @@
 args==0.1.0
 clint==0.5.1
 futures==3.0.5
-MongoRouter==0.0.1
 netaddr==0.7.19
 pkginfo==1.4.1
 pluggy==0.4.0
