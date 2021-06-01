@@ -11,7 +11,7 @@ with open(path.join(current_path, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='MongoRouter',
-    version='0.1.0',
+    version='0.1.1',
     description='A routing package for Mongo DB',
     long_description=long_description,
 
