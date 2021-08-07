@@ -62,7 +62,7 @@ class MongoRouter(object):
         if not route_info:
             raise Exception("Unknown route %s" % route_name)
 
-        if self.connections:
+        if self.connections.get(route_name):
             return self.connections[
                 route_name][
                 route_info.get("db", "mongo_router_db")][
